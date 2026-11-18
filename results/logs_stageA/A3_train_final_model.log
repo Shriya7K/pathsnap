@@ -1,0 +1,16 @@
+============================================================
+PATHSNAP - FINAL RANDOM FOREST TRAINING
+============================================================
+Training trips: 80
+Features: 14
+Actual training rows: 49,940 | Positive ratio: 6.32%
+Training rows: 49,940
+Positive ratio: 6.32%
+
+Training final model...
+Training completed.
+
+Final model saved: models\final_model.joblib
+Metadata saved: models\final_model_metadata.json
+
+FINAL TRAINING COMPLETE

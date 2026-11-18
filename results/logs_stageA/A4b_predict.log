@@ -1,0 +1,64 @@
+============================================================
+PATHSNAP - TEST PROBABILITY PREDICTION
+============================================================
+Model: RandomForestClassifier
+Features: 14
+Test trips: 10
+
+Processing student_test_00000000.csv.gz...
+Candidate rows: 23,096
+Probability range: 0.000000 - 0.999966
+Saved: results\predictions\student_test_00000000.csv.gz
+
+Processing student_test_00000007.csv.gz...
+Candidate rows: 9,638
+Probability range: 0.000000 - 0.999966
+Saved: results\predictions\student_test_00000007.csv.gz
+
+Processing student_test_00000009.csv.gz...
+Candidate rows: 27,936
+Probability range: 0.000000 - 0.999838
+Saved: results\predictions\student_test_00000009.csv.gz
+
+Processing student_test_00000040.csv.gz...
+Candidate rows: 29,619
+Probability range: 0.000000 - 0.999966
+Saved: results\predictions\student_test_00000040.csv.gz
+
+Processing student_test_00000052.csv.gz...
+Candidate rows: 5,301
+Probability range: 0.000000 - 0.999940
+Saved: results\predictions\student_test_00000052.csv.gz
+
+Processing student_test_00000056.csv.gz...
+Candidate rows: 90,851
+Probability range: 0.000000 - 0.999966
+Saved: results\predictions\student_test_00000056.csv.gz
+
+Processing student_test_00000065.csv.gz...
+Candidate rows: 20,467
+Probability range: 0.000000 - 0.999957
+Saved: results\predictions\student_test_00000065.csv.gz
+
+Processing student_test_00000076.csv.gz...
+Candidate rows: 42,442
+Probability range: 0.000000 - 0.999932
+Saved: results\predictions\student_test_00000076.csv.gz
+
+Processing student_test_00000077.csv.gz...
+Candidate rows: 95,972
+Probability range: 0.000000 - 0.999877
+Saved: results\predictions\student_test_00000077.csv.gz
+
+Processing student_test_00000091.csv.gz...
+Candidate rows: 21,045
+Probability range: 0.000000 - 0.999944
+Saved: results\predictions\student_test_00000091.csv.gz
+
+========== PREDICTION SUMMARY ==========
+Trips processed: 10
+Total predictions: 366,367
+Output directory: results\predictions
+Probability column: probability
+
+TEST PROBABILITY PREDICTION COMPLETE

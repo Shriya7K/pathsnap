@@ -1,0 +1,7 @@
+=== probability file check: results/p2/probs_all.csv.gz ===
+rows in file: 3611559   columns: ['partition', 'trip_id', 'point_idx', 'arc_id', 'prob', 'prob_raw', 'fold']
+trips present vs expected: train 80/80, student_test 10/10
+P1 candidate rows: 3611559  missing from file: 0 (0.0%)  extra rows not in candidates: 0  points with candidates but no rows: 0/226164
+duplicates: 0   points: 226164   sum != 1 (tol 0.001): 0   all-zero: 0   single-candidate: 196
+train trips: file declares out-of-fold = True, declares in-sample = False
+result: OK (no blocking problems)

@@ -1,0 +1,71 @@
+============================================================
+PATHSNAP - TEST FEATURE GENERATION
+============================================================
+Test trips found: 10
+
+Processing student/test_00000000...
+GPS points: 2,503
+Candidate rows: 23,096
+Features: 14
+Saved: results\test_features\student_test_00000000.csv.gz
+
+Processing student/test_00000007...
+GPS points: 1,354
+Candidate rows: 9,638
+Features: 14
+Saved: results\test_features\student_test_00000007.csv.gz
+
+Processing student/test_00000009...
+GPS points: 1,049
+Candidate rows: 27,936
+Features: 14
+Saved: results\test_features\student_test_00000009.csv.gz
+
+Processing student/test_00000040...
+GPS points: 2,995
+Candidate rows: 29,619
+Features: 14
+Saved: results\test_features\student_test_00000040.csv.gz
+
+Processing student/test_00000052...
+GPS points: 262
+Candidate rows: 5,301
+Features: 14
+Saved: results\test_features\student_test_00000052.csv.gz
+
+Processing student/test_00000056...
+GPS points: 3,958
+Candidate rows: 90,851
+Features: 14
+Saved: results\test_features\student_test_00000056.csv.gz
+
+Processing student/test_00000065...
+GPS points: 768
+Candidate rows: 20,467
+Features: 14
+Saved: results\test_features\student_test_00000065.csv.gz
+
+Processing student/test_00000076...
+GPS points: 1,486
+Candidate rows: 42,442
+Features: 14
+Saved: results\test_features\student_test_00000076.csv.gz
+
+Processing student/test_00000077...
+GPS points: 3,911
+Candidate rows: 95,972
+Features: 14
+Saved: results\test_features\student_test_00000077.csv.gz
+
+Processing student/test_00000091...
+GPS points: 874
+Candidate rows: 21,045
+Features: 14
+Saved: results\test_features\student_test_00000091.csv.gz
+
+========== TEST FEATURE SUMMARY ==========
+Trips processed: 10
+Total candidate rows: 366,367
+Feature columns: 14
+
+TEST FEATURE GENERATION COMPLETE

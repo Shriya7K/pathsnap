@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "status": "TUNED 2026-11-18: random search, seed 0, 30 trials, objective f1 = 0.9728 (default config 0.9452) on 30 dev trips (train, out-of-fold probs: True); score source: random forest (P2); see hmm_rf_tuning_log.csv",
+    "units": "metres, seconds, natural-log scores"
+  },
+  "emission_floor": 1e-06,
+  "temperature": 2.1569,
+  "beta": 15.7436,
+  "switch_penalty": 2.918,
+  "unreach_penalty": 15.4161,
+  "max_path_m": 567.5362,
+  "gap_scale_mps": 5.0316,
+  "path_cap_m": 4000.0,
+  "restart_gap_s": 600.0,
+  "fill_path": true,
+  "fill_max_m": 3000.0
+}

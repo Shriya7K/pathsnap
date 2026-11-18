@@ -1,0 +1,35 @@
+30 tuning trips excluded; evaluating 60 unseen trips (10 student_test + 50 train OOF)
+--- default config: beta=10.0, switch_penalty=0.5, unreach_penalty=12.0, max_path_m=200.0, temperature=1.0, gap_scale_mps=30.0
+--- tuned config: beta=15.7436, switch_penalty=2.918, unreach_penalty=15.4161, max_path_m=567.5362, temperature=2.1569, gap_scale_mps=5.0316
+
+=== student_test (never seen by tuning) (10 trips): HMM decoder, default vs tuned config ===
+metric       default mean  tuned mean   d mean |  def med tuned med    d med | improved/tied/worse
+point_acc          0.9255      0.9003  -0.0252 |   0.9403    0.9043  -0.0359 | 3/0/7
+precision          0.8894      0.9757  +0.0862 |   0.9418    0.9830  +0.0412 | 9/1/0
+recall             0.9875      0.9880  +0.0005 |   0.9838    0.9852  +0.0013 | 2/7/1
+f1                 0.9300      0.9816  +0.0516 |   0.9661    0.9846  +0.0184 | 9/1/0
+lcs_sim            0.8476      0.9680  +0.1204 |   0.9207    0.9783  +0.0576 | 9/1/0
+continuity         1.0000      1.0000  +0.0000 |   1.0000    1.0000  +0.0000 | 0/10/0
+breaks total: default 0  tuned 0
+
+=== remaining train OOF trips (not in the tuning subset) (50 trips): HMM decoder, default vs tuned config ===
+metric       default mean  tuned mean   d mean |  def med tuned med    d med | improved/tied/worse
+point_acc          0.9234      0.8963  -0.0272 |   0.9461    0.9095  -0.0365 | 12/0/38
+precision          0.8781      0.9219  +0.0438 |   0.9397    0.9838  +0.0441 | 48/1/1
+recall             0.9802      0.9782  -0.0020 |   0.9940    0.9924  -0.0016 | 11/19/20
+f1                 0.9202      0.9453  +0.0251 |   0.9662    0.9884  +0.0222 | 47/1/2
+lcs_sim            0.8273      0.8999  +0.0726 |   0.9187    0.9774  +0.0587 | 48/1/1
+continuity         0.9979      0.9985  +0.0006 |   1.0000    1.0000  +0.0000 | 6/38/6
+breaks total: default 60  tuned 42
+
+=== all unseen trips (60 trips): HMM decoder, default vs tuned config ===
+metric       default mean  tuned mean   d mean |  def med tuned med    d med | improved/tied/worse
+point_acc          0.9237      0.8969  -0.0268 |   0.9449    0.9084  -0.0364 | 15/0/45
+precision          0.8800      0.9309  +0.0508 |   0.9418    0.9830  +0.0412 | 57/2/1
+recall             0.9814      0.9798  -0.0016 |   0.9934    0.9906  -0.0028 | 13/26/21
+f1                 0.9218      0.9513  +0.0295 |   0.9662    0.9871  +0.0209 | 56/2/2
+lcs_sim            0.8307      0.9113  +0.0806 |   0.9187    0.9775  +0.0588 | 57/2/1
+continuity         0.9983      0.9988  +0.0005 |   1.0000    1.0000  +0.0000 | 6/48/6
+breaks total: default 60  tuned 42
+
+written results/hmm_rf_tuned_vs_default.csv

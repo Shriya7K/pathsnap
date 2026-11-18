@@ -1,0 +1,22 @@
+train trips: 80   features: 14   params: {'n_estimators': 180, 'max_depth': 20, 'min_samples_leaf': 2, 'max_features': 'sqrt'}
+integrity OK: 5 folds, train/held-out disjoint in each, each of the 80 trips held out once
+Actual training rows: 49,933 | Positive ratio: 6.09%
+fold 1: train trips 64, held-out 16, train rows 49,933, held-out labelled points 37,619, Top-1 0.8601   [150s]
+Actual training rows: 49,924 | Positive ratio: 6.11%
+fold 2: train trips 64, held-out 16, train rows 49,924, held-out labelled points 33,983, Top-1 0.8808   [256s]
+Actual training rows: 49,924 | Positive ratio: 6.47%
+fold 3: train trips 64, held-out 16, train rows 49,924, held-out labelled points 36,396, Top-1 0.7774   [358s]
+Actual training rows: 49,936 | Positive ratio: 6.38%
+fold 4: train trips 64, held-out 16, train rows 49,936, held-out labelled points 46,353, Top-1 0.6999   [484s]
+Actual training rows: 49,928 | Positive ratio: 6.42%
+fold 5: train trips 64, held-out 16, train rows 49,928, held-out labelled points 30,798, Top-1 0.8322   [546s]
+
+OOF Top-1 per fold: 0.8601, 0.8808, 0.7774, 0.6999, 0.8322   mean 0.8101
+
+P2's own random-forest fold rows (fold_results.csv, a different RF config: 100 trees, depth 18):
+ fold         model  training_row_limit  validation_points  points_with_positive_candidate  correct_points  candidate_coverage  top1_accuracy  conditional_accuracy  mean_trip_auc
+    1 Random Forest               50000              37619                           37600           32281            0.999495       0.858104              0.858537       0.984846
+    2 Random Forest               50000              33983                           33982           29913            0.999971       0.880234              0.880260       0.987201
+    3 Random Forest               50000              36396                           36396           28116            1.000000       0.772502              0.772502       0.986381
+    4 Random Forest               50000              46353                           46331           32457            0.999525       0.700214              0.700546       0.974347
+    5 Random Forest               50000              30798                           30797           25674            0.999968       0.833626              0.833653       0.990161

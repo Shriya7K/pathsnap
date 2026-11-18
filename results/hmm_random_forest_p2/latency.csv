@@ -1,0 +1,6 @@
+partition,trip_id,n_points,network_build_s,decode_from_probs_s,api_candidates_s,api_score_s,api_decode_s,api_total_s,ms_per_point_api
+student_test,00000052,262,0.008,0.657,0.289,3.871,0.69,4.85,18.513
+student_test,00000091,874,0.013,2.598,0.389,0.929,2.634,3.952,4.522
+student_test,00000007,1354,0.009,1.244,0.227,0.376,1.278,1.88,1.389
+student_test,00000040,2995,0.028,3.786,0.605,1.12,3.769,5.494,1.834
+student_test,00000056,3958,0.026,11.174,0.975,3.375,5.698,10.049,2.539

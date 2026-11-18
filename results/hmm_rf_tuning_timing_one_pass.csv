@@ -1,0 +1,2 @@
+trial,seed,n_trips,partitions,is_baseline,beta,switch_penalty,unreach_penalty,max_path_m,temperature,gap_scale_mps,objective,mean_f1,mean_f1_raw,mean_precision,mean_recall,mean_point_acc,mean_lcs_sim,mean_continuity,total_breaks,seconds,synthetic,score_source,train_probs_oof,objective_name
+0,0,30,train,True,10.0,0.5,12.0,200.0,1.0,30.0,0.9451951471386013,0.9451951471386013,0.9256568740264421,0.9068102966228954,0.9911195666250138,0.9266201985435139,0.8242305032013191,0.9992349225085798,4,82.8,False,random forest (P2),True,f1

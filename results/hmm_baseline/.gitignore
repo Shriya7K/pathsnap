@@ -1,0 +1,2 @@
+# baseline probabilities are large; regenerate with python -m hmm.baseline_scores
+*.csv.gz

@@ -1,0 +1,13 @@
+=== DIAGNOSE (reference / labels used only to describe errors) ===
+point outcomes, mean over trips (label_valid points):   correct   twin  adjacent  other   none
+  classifier-only      82.4%      7.4%      2.6%      7.7%      0.0%
+  HMM                  92.5%      2.6%      1.9%      3.0%      0.0%
+fill_path effect (route metrics, mean over trips):          raw   filled
+  precision                              0.9368   0.8890
+  recall                                 0.8883   0.9847
+  f1                                     0.9093   0.9296
+  lcs_sim                                0.8350   0.8285
+  breaks (total)                          4596       64
+  trips where filling raises F1: 71   lowers F1: 18   unchanged: 1
+route arcs not in the reference: 19542 = reverse twins 920 + fill_path insertions 12255 + other decoded 6367
+HMM-wrong points whose chosen arc is nearer to the GPS point than the labelled arc (median over trips): 56%

@@ -1,0 +1,30 @@
+{
+    "model": "RandomForestClassifier",
+    "features": [
+        "dist",
+        "log_dist",
+        "rank",
+        "arc_length",
+        "projection_ratio",
+        "dist_to_start",
+        "dist_to_end",
+        "gps_speed",
+        "gps_move_distance",
+        "time_delta",
+        "heading_diff",
+        "heading_alignment",
+        "heading_valid",
+        "gps_heading_change"
+    ],
+    "hyperparameters": {
+        "n_estimators": 180,
+        "max_depth": 20,
+        "min_samples_leaf": 2,
+        "max_features": "sqrt"
+    },
+    "training_trips": 80,
+    "training_rows": 49940,
+    "positive_ratio": 0.0631958350020024,
+    "random_state": 42,
+    "probability_method": "predict_proba"
+}

@@ -9,8 +9,8 @@ from pyproj import Transformer
 
 ROOT = Path(sys.argv[1])
 ONLY = sys.argv[2] if len(sys.argv) > 2 else None
-R_MAX, K_MAX = 150.0, 20
-GRID = [(5, 30), (5, 50), (10, 50), (10, 100), (20, 100), (20, 150)]
+R_MAX, K_MAX = 150.0, 50
+GRID = [(5, 50), (10, 100), (20, 100), (30, 100), (50, 100), (50, 150)]
 OUT = Path("results/candidates")
 OUT.mkdir(parents=True, exist_ok=True)
 

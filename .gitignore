@@ -6,3 +6,11 @@ venv/
 .ipynb_checkpoints/ 
 .DS_Store 
 results/candidates/
+
+# Generated ML training data
+results/training_features/
+
+# Generated model artifacts and tuning outputs
+results/models/
+results/tuning/
+results/probabilities/

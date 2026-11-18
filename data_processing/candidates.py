@@ -79,6 +79,7 @@ for tf in files:
     j = align(xy, A, B)
     true_arc = rt[j]
     d_true = pt_seg_dist(xy, A[j], B[j])
+    valid = d_true <= 50.0
 
     # 3. spatial index on arcs near the track, then candidates
     xmin, ymin = xy.min(0) - R_MAX
@@ -98,6 +99,7 @@ for tf in files:
     c["rank"] = c.groupby("point_idx").cumcount()
     c = c[c["rank"] < K_MAX].copy()
     c["label"] = (c["arc_id"].to_numpy() == true_arc[c["point_idx"].to_numpy()]).astype(int)
+    c["label_valid"] = valid[c["point_idx"].to_numpy()].astype(int)
 
     # 4. miss rates
     hit = c[c.label == 1]
@@ -107,26 +109,27 @@ for tf in files:
     t_dist[hit.point_idx.to_numpy()] = hit["dist"].to_numpy()
     row = {"partition": part, "trip": s, "epsg": epsg, "n_points": len(xy),
            "label_dist_gt50": int((d_true > 50).sum()),
-           "avg_cands": round(len(c) / len(xy), 2)}
+           "avg_cands": round(len(c) / len(xy), 2), "n_valid": int(valid.sum())}
     for K, R in GRID:
-        row[f"miss_K{K}_R{R}"] = int(((t_rank >= K) | (t_dist > R)).sum())
+        row[f"miss_K{K}_R{R}"] = int((((t_rank >= K) | (t_dist > R)) & valid).sum())
     summary.append(row)
 
     # 5. save
     c.assign(trip=s).to_csv(OUT / f"{part}_{s}_cands.csv.gz", index=False)
     pd.DataFrame({"point_idx": np.arange(len(xy)), "x": px, "y": py, "ts": trk[2],
-                  "route_pos": j, "true_arc": true_arc, "d_true": d_true}
+                  "route_pos": j, "true_arc": true_arc, "d_true": d_true, "label_valid": valid}
                  ).to_csv(OUT / f"{part}_{s}_points.csv.gz", index=False)
     print(f"{part}/{s}: {len(xy)} pts, EPSG {epsg}, {time.time() - t0:.1f}s")
 
 sm = pd.DataFrame(summary)
 sm.to_csv("results/candidate_summary.csv", index=False)
 n = sm.n_points.sum()
+nv = sm.n_valid.sum()
 print("\nTotal points:", n, "| label points >50 m from their arc:",
       round(sm.label_dist_gt50.sum() / n * 100, 2), "%")
 print("\nCandidate miss rate (% of points whose true arc is not a candidate):")
 for K, R in GRID:
-    print(f"  K={K:>2}, R={R:>3} m: {sm[f'miss_K{K}_R{R}'].sum() / n * 100:.2f} %")
+    print(f"  K={K:>2}, R={R:>3} m: {sm[f'miss_K{K}_R{R}'].sum() / nv * 100:.2f} %")
 print("\nWorst trips at K=10, R=100:")
-sm["miss_pct"] = sm["miss_K10_R100"] / sm.n_points * 100
+sm["miss_pct"] = sm["miss_K10_R100"] / sm.n_valid.clip(lower=1) * 100
 print(sm.nlargest(5, "miss_pct")[["partition", "trip", "n_points", "miss_pct"]])

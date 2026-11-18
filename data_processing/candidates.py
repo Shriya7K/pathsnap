@@ -95,7 +95,7 @@ for tf in files:
     pi, li = tree.query(pts, predicate="dwithin", distance=R_MAX)
     dist = shapely.distance(pts[pi], lines[li])
     c = pd.DataFrame({"point_idx": pi, "arc_id": keep[li], "dist": dist})
-    c = c.sort_values(["point_idx", "dist"], kind="stable")
+    c = c.sort_values(["point_idx", "dist", "arc_id"], kind="stable")
     c["rank"] = c.groupby("point_idx").cumcount()
     c = c[c["rank"] < K_MAX].copy()
     c["label"] = (c["arc_id"].to_numpy() == true_arc[c["point_idx"].to_numpy()]).astype(int)

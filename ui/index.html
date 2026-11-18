@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PathSnap | GPS Map Matching</title>
 
-    <!-- Leaflet map library -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -50,7 +49,7 @@
         }
 
         main {
-            max-width: 1100px;
+            max-width: 1150px;
             margin: 35px auto;
             padding: 0 20px;
         }
@@ -66,6 +65,7 @@
 
         .intro p {
             color: #64748b;
+            line-height: 1.5;
         }
 
         .dashboard {
@@ -82,65 +82,55 @@
         }
 
         .card h3 {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
 
-        .upload-area {
-            border: 2px dashed #9aabc5;
-            border-radius: 12px;
-            padding: 35px 15px;
-            text-align: center;
-            cursor: pointer;
-            background: #f8faff;
+        .file-field {
+            margin-bottom: 18px;
         }
 
-        .upload-area.dragover {
-            border-color: #16866d;
-            background: #e9faf4;
-        }
-
-        .upload-area p {
-            margin: 9px 0;
-            color: #64748b;
+        .file-field label {
+            display: block;
+            font-weight: bold;
             font-size: 14px;
+            margin-bottom: 8px;
         }
 
-        input[type="file"] {
-            display: none;
+        .file-field input {
+            display: block;
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #f8faff;
+            font-size: 13px;
+        }
+
+        .file-help {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #64748b;
         }
 
         button {
             border: none;
-            padding: 12px 18px;
+            padding: 13px 18px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             font-size: 14px;
         }
 
-        .browse {
-            background: #e5efff;
-            color: #174a91;
-            margin-top: 12px;
-        }
-
-        .upload-btn {
+        .match-btn {
             background: #1768d5;
             color: white;
             width: 100%;
-            margin-top: 18px;
+            margin-top: 5px;
         }
 
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-
-        #fileName {
-            margin-top: 12px;
-            color: #1768d5;
-            font-size: 14px;
-            overflow-wrap: anywhere;
         }
 
         #message {
@@ -149,6 +139,7 @@
             border-radius: 8px;
             display: none;
             font-size: 14px;
+            line-height: 1.5;
             overflow-wrap: anywhere;
         }
 
@@ -164,11 +155,16 @@
             color: #b42318;
         }
 
+        #message.loading {
+            display: block;
+            background: #eaf2ff;
+            color: #174a91;
+        }
+
         .stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            margin-top: 18px;
         }
 
         .stat {
@@ -185,6 +181,7 @@
 
         .stat h2 {
             font-size: 25px;
+            overflow-wrap: anywhere;
         }
 
         .map-card {
@@ -192,7 +189,7 @@
         }
 
         #map {
-            height: 430px;
+            height: 480px;
             width: 100%;
             border-radius: 10px;
             display: none;
@@ -213,22 +210,17 @@
 
         .map-placeholder h3 {
             color: #263c5b;
-            margin-bottom: 10px;
+            margin: 12px 0 10px;
         }
 
         .map-placeholder p {
             font-size: 14px;
         }
 
-        .note {
-            margin-top: 15px;
-            font-size: 13px;
-            color: #64748b;
-        }
-
         .legend {
             display: none;
             gap: 20px;
+            flex-wrap: wrap;
             margin: 14px 0;
             font-size: 13px;
             color: #475569;
@@ -240,7 +232,22 @@
             gap: 7px;
         }
 
-        .dot {
+        .legend-line {
+            height: 4px;
+            width: 22px;
+            display: inline-block;
+            border-radius: 3px;
+        }
+
+        .gps-line {
+            background: #94a3b8;
+        }
+
+        .matched-line {
+            background: #1768d5;
+        }
+
+        .start-dot, .end-dot {
             height: 11px;
             width: 11px;
             border-radius: 50%;
@@ -253,6 +260,13 @@
 
         .end-dot {
             background: #dc2626;
+        }
+
+        .note {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
         }
 
         footer {
@@ -276,7 +290,7 @@
             }
 
             #map {
-                height: 330px;
+                height: 350px;
             }
         }
     </style>
@@ -293,57 +307,91 @@
 
     <section class="intro">
         <h2>GPS Map Matching Dashboard</h2>
-        <p>Upload GPS trip data and prepare it for road-network map matching.</p>
+        <p>
+            Upload GPS trip data and road-network files to reconstruct
+            the most likely road route using Machine Learning and HMM.
+        </p>
     </section>
 
     <section class="dashboard">
 
         <div class="card">
-            <h3>Upload GPS Trip</h3>
+            <h3>Upload Trip and Road Network</h3>
 
-            <div class="upload-area" id="dropArea">
-                <div style="font-size:35px;">📂</div>
-                <h3>Drag and drop your CSV file</h3>
-                <p>or browse files from your computer</p>
-
-                <button class="browse" type="button" id="browseButton">
-                    Browse Files
-                </button>
-
-                <input type="file" id="fileInput" accept=".csv">
-                <div id="fileName">No file selected</div>
+            <div class="file-field">
+                <label for="gpsInput">GPS Trip CSV</label>
+                <input type="file" id="gpsInput" accept=".csv">
+                <p class="file-help">
+                    CSV containing latitude, longitude and timestamp.
+                </p>
             </div>
 
-            <button class="upload-btn" id="uploadButton" disabled>
-                Upload GPS Trip
+            <div class="file-field">
+                <label for="nodesInput">Road Nodes File</label>
+                <input type="file" id="nodesInput">
+                <p class="file-help">
+                    Whitespace-separated longitude and latitude coordinates.
+                </p>
+            </div>
+
+            <div class="file-field">
+                <label for="arcsInput">Road Arcs File</label>
+                <input type="file" id="arcsInput">
+                <p class="file-help">
+                    Whitespace-separated from-node and to-node indexes.
+                </p>
+            </div>
+
+            <button class="match-btn" id="matchButton">
+                Run Map Matching
             </button>
 
             <div id="message"></div>
         </div>
 
         <div class="card">
-            <h3>Trip Statistics</h3>
+            <h3>Map Matching Statistics</h3>
 
             <div class="stats">
 
                 <div class="stat">
                     <p>GPS Points</p>
-                    <h2 id="pointCount">—</h2>
+                    <h2 id="gpsCount">—</h2>
                 </div>
 
                 <div class="stat">
-                    <p>File Size</p>
-                    <h2 id="fileSize">—</h2>
+                    <p>Matched Points</p>
+                    <h2 id="matchedCount">—</h2>
                 </div>
 
                 <div class="stat">
-                    <p>Upload Status</p>
-                    <h2 id="uploadStatus" style="font-size:17px;">Waiting</h2>
+                    <p>Unmatched Points</p>
+                    <h2 id="unmatchedCount">—</h2>
                 </div>
 
                 <div class="stat">
-                    <p>Map Matching</p>
-                    <h2 style="font-size:17px;">Pending</h2>
+                    <p>Match Percentage</p>
+                    <h2 id="matchPercentage">—</h2>
+                </div>
+
+                <div class="stat">
+                    <p>Road Nodes</p>
+                    <h2 id="nodeCount">—</h2>
+                </div>
+
+                <div class="stat">
+                    <p>Road Arcs</p>
+                    <h2 id="arcCount">—</h2>
+                </div>
+
+                <div class="stat">
+                    <p>Final Route Arcs</p>
+                    <h2 id="routeCount">—</h2>
+                </div>
+
+                <div class="stat">
+                    <p>Processing Status</p>
+                    <h2 id="matchStatus" style="font-size:17px;">Waiting</h2>
                 </div>
 
             </div>
@@ -352,27 +400,44 @@
     </section>
 
     <section class="card map-card">
-        <h3>GPS Route Visualization</h3>
+        <h3>Matched Road Route Visualization</h3>
 
         <div class="map-placeholder" id="mapPlaceholder">
             <div>
                 <div style="font-size:40px;">🗺️</div>
-                <h3>Interactive GPS Map</h3>
-                <p>Upload a valid GPS CSV file to visualize your trip.</p>
+                <h3>Interactive Map</h3>
+                <p>
+                    Upload your GPS trip and road-network files,
+                    then run map matching to visualize the result.
+                </p>
             </div>
         </div>
 
         <div id="map"></div>
 
         <div class="legend" id="mapLegend">
-            <span><i class="dot start-dot"></i> Starting point</span>
-            <span><i class="dot end-dot"></i> Ending point</span>
+            <span>
+                <i class="legend-line gps-line"></i>
+                Original GPS trace
+            </span>
+            <span>
+                <i class="legend-line matched-line"></i>
+                HMM matched road route
+            </span>
+            <span>
+                <i class="start-dot"></i>
+                Start
+            </span>
+            <span>
+                <i class="end-dot"></i>
+                End
+            </span>
         </div>
 
         <p class="note">
-            This map displays the original uploaded GPS trace.
-            ML-based road prediction and HMM route matching are
-            separate features that will be integrated later.
+            The blue route represents the road arcs selected by the
+            Random Forest scoring and HMM/Viterbi map-matching pipeline.
+            The grey route represents the original GPS trace.
         </p>
     </section>
 
@@ -385,53 +450,14 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    const fileInput = document.getElementById("fileInput");
-    const browseButton = document.getElementById("browseButton");
-    const uploadButton = document.getElementById("uploadButton");
-    const dropArea = document.getElementById("dropArea");
-    const fileName = document.getElementById("fileName");
+    const gpsInput = document.getElementById("gpsInput");
+    const nodesInput = document.getElementById("nodesInput");
+    const arcsInput = document.getElementById("arcsInput");
+    const matchButton = document.getElementById("matchButton");
     const message = document.getElementById("message");
 
-    let selectedFile = null;
     let map = null;
     let routeLayer = null;
-
-    browseButton.addEventListener("click", () => {
-        fileInput.click();
-    });
-
-    fileInput.addEventListener("change", () => {
-        selectFile(fileInput.files[0]);
-    });
-
-    function selectFile(file) {
-        if (!file) return;
-
-        if (!file.name.toLowerCase().endsWith(".csv")) {
-            showMessage("Please select a CSV file.", "error");
-            return;
-        }
-
-        selectedFile = file;
-        fileName.textContent = file.name;
-        uploadButton.disabled = false;
-        message.style.display = "none";
-    }
-
-    dropArea.addEventListener("dragover", (event) => {
-        event.preventDefault();
-        dropArea.classList.add("dragover");
-    });
-
-    dropArea.addEventListener("dragleave", () => {
-        dropArea.classList.remove("dragover");
-    });
-
-    dropArea.addEventListener("drop", (event) => {
-        event.preventDefault();
-        dropArea.classList.remove("dragover");
-        selectFile(event.dataTransfer.files[0]);
-    });
 
     function showMessage(text, type) {
         message.textContent = text;
@@ -439,20 +465,91 @@
         message.style.display = "block";
     }
 
-    function displayGPSMap(points) {
+    function parseGPSCsv(text) {
+        const lines = text.trim().split(/\r?\n/);
 
-        const coordinates = points.map(point => [
-            point.latitude,
-            point.longitude
-        ]);
+        if (lines.length < 2) {
+            throw new Error("GPS CSV does not contain any data rows.");
+        }
 
+        const headers = lines[0]
+            .split(",")
+            .map(value => value.trim().toLowerCase());
+
+        const latIndex = headers.indexOf("latitude");
+        const lonIndex = headers.indexOf("longitude");
+
+        if (latIndex === -1 || lonIndex === -1) {
+            throw new Error(
+                "GPS CSV must contain latitude and longitude columns."
+            );
+        }
+
+        const points = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+
+            const values = lines[i].split(",");
+
+            const latitude = Number(values[latIndex]);
+            const longitude = Number(values[lonIndex]);
+
+            if (
+                !Number.isFinite(latitude) ||
+                !Number.isFinite(longitude) ||
+                latitude < -90 ||
+                latitude > 90 ||
+                longitude < -180 ||
+                longitude > 180
+            ) {
+                throw new Error(
+                    "Invalid GPS coordinates in CSV row " + (i + 1)
+                );
+            }
+
+            points.push([latitude, longitude]);
+        }
+
+        if (points.length === 0) {
+            throw new Error("No valid GPS points found.");
+        }
+
+        return points;
+    }
+
+    function parseNetworkFile(text, fileDescription) {
+        const rows = text.trim().split(/\r?\n/);
+
+        if (!text.trim()) {
+            throw new Error(fileDescription + " file is empty.");
+        }
+
+        return rows.map((line, index) => {
+            const values = line.trim().split(/\s+/).map(Number);
+
+            if (
+                values.length !== 2 ||
+                !values.every(Number.isFinite)
+            ) {
+                throw new Error(
+                    "Invalid " + fileDescription +
+                    " data at line " + (index + 1)
+                );
+            }
+
+            return values;
+        });
+    }
+
+    function initializeMap() {
         document.getElementById("mapPlaceholder").style.display = "none";
         document.getElementById("map").style.display = "block";
         document.getElementById("mapLegend").style.display = "flex";
 
         if (!map) {
             map = L.map("map");
-            
+
             L.tileLayer(
                 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                 {
@@ -462,50 +559,138 @@
             ).addTo(map);
         }
 
+        setTimeout(() => map.invalidateSize(), 100);
+    }
+
+    function displayMatchedMap(gpsPoints, nodes, arcs, route) {
+        initializeMap();
+
         if (routeLayer) {
             map.removeLayer(routeLayer);
         }
 
         const layers = [];
+        const allCoordinates = [];
 
-        // Draw the uploaded GPS trace.
-        const routeLine = L.polyline(coordinates, {
-            color: "#1768d5",
-            weight: 5,
-            opacity: 0.85
+        // Display the original GPS trace.
+        const gpsLine = L.polyline(gpsPoints, {
+            color: "#94a3b8",
+            weight: 3,
+            opacity: 0.7
         });
 
-        layers.push(routeLine);
+        layers.push(gpsLine);
+        allCoordinates.push(...gpsPoints);
 
-        // Mark the starting point.
-        const startMarker = L.marker(coordinates[0])
-            .bindPopup("Starting GPS point");
+        // Reconstruct the matched route using route arc IDs.
+        const matchedCoordinates = [];
 
-        layers.push(startMarker);
+        route.forEach((arcId, index) => {
+            if (
+                !Number.isInteger(arcId) ||
+                arcId < 0 ||
+                arcId >= arcs.length
+            ) {
+                throw new Error(
+                    "Invalid route arc ID: " + arcId
+                );
+            }
 
-        // Mark the ending point.
-        const endMarker = L.marker(coordinates[coordinates.length - 1])
-            .bindPopup("Ending GPS point");
+            const fromNode = arcs[arcId][0];
+            const toNode = arcs[arcId][1];
 
-        layers.push(endMarker);
+            if (
+                !Number.isInteger(fromNode) ||
+                !Number.isInteger(toNode) ||
+                fromNode < 0 ||
+                toNode < 0 ||
+                fromNode >= nodes.length ||
+                toNode >= nodes.length
+            ) {
+                throw new Error(
+                    "Invalid node index in route arc " + arcId
+                );
+            }
 
-        // Add individual GPS point markers.
-        coordinates.forEach((coordinate, index) => {
+            const start = [
+                nodes[fromNode][1],
+                nodes[fromNode][0]
+            ];
 
-            if (index === 0 || index === coordinates.length - 1) {
+            const end = [
+                nodes[toNode][1],
+                nodes[toNode][0]
+            ];
+
+            // Start a new line if consecutive arcs do not connect.
+            const previous = matchedCoordinates[
+                matchedCoordinates.length - 1
+            ];
+
+            if (
+                previous &&
+                (
+                    previous[0] !== start[0] ||
+                    previous[1] !== start[1]
+                )
+            ) {
+                matchedCoordinates.push(null);
+            }
+
+            matchedCoordinates.push(start, end);
+        });
+
+        // Draw each connected route section separately.
+        let currentSegment = [];
+
+        function addSegment() {
+            if (currentSegment.length < 2) {
+                currentSegment = [];
                 return;
             }
 
-            const marker = L.circleMarker(coordinate, {
-                radius: 5,
+            const line = L.polyline(currentSegment, {
+                color: "#1768d5",
+                weight: 6,
+                opacity: 0.95
+            });
+
+            layers.push(line);
+            allCoordinates.push(...currentSegment);
+            currentSegment = [];
+        }
+
+        matchedCoordinates.forEach(coordinate => {
+            if (coordinate === null) {
+                addSegment();
+            } else {
+                currentSegment.push(coordinate);
+            }
+        });
+
+        addSegment();
+
+        // Mark the GPS starting and ending points.
+        const startMarker = L.circleMarker(gpsPoints[0], {
+            radius: 7,
+            color: "#ffffff",
+            weight: 2,
+            fillColor: "#16a34a",
+            fillOpacity: 1
+        }).bindPopup("Starting GPS point");
+
+        const endMarker = L.circleMarker(
+            gpsPoints[gpsPoints.length - 1],
+            {
+                radius: 7,
                 color: "#ffffff",
                 weight: 2,
-                fillColor: "#1768d5",
+                fillColor: "#dc2626",
                 fillOpacity: 1
-            }).bindPopup("GPS Point " + (index + 1));
+            }
+        ).bindPopup("Ending GPS point");
 
-            layers.push(marker);
-        });
+        layers.push(startMarker, endMarker);
 
         routeLayer = L.featureGroup(layers).addTo(map);
 
@@ -517,20 +702,78 @@
         setTimeout(() => map.invalidateSize(), 100);
     }
 
-    uploadButton.addEventListener("click", async () => {
+    function updateStatistics(result) {
+        document.getElementById("gpsCount").textContent =
+            result.gps_points;
 
-        if (!selectedFile) return;
+        document.getElementById("matchedCount").textContent =
+            result.matched_points;
 
-        const formData = new FormData();
-        formData.append("file", selectedFile);
+        document.getElementById("unmatchedCount").textContent =
+            result.unmatched_points;
 
-        uploadButton.disabled = true;
-        uploadButton.textContent = "Uploading...";
-        message.style.display = "none";
+        document.getElementById("matchPercentage").textContent =
+            result.match_percentage + "%";
+
+        document.getElementById("nodeCount").textContent =
+            result.road_nodes;
+
+        document.getElementById("arcCount").textContent =
+            result.road_arcs;
+
+        document.getElementById("routeCount").textContent =
+            result.route_arc_count;
+
+        document.getElementById("matchStatus").textContent =
+            "Success";
+    }
+
+    matchButton.addEventListener("click", async () => {
+        const gpsFile = gpsInput.files[0];
+        const nodesFile = nodesInput.files[0];
+        const arcsFile = arcsInput.files[0];
+
+        if (!gpsFile || !nodesFile || !arcsFile) {
+            showMessage(
+                "Please select all three files: GPS CSV, nodes and arcs.",
+                "error"
+            );
+            return;
+        }
+
+        if (!gpsFile.name.toLowerCase().endsWith(".csv")) {
+            showMessage("GPS trip must be a CSV file.", "error");
+            return;
+        }
+
+        matchButton.disabled = true;
+        matchButton.textContent = "Running Map Matching...";
+        document.getElementById("matchStatus").textContent =
+            "Processing";
+
+        showMessage(
+            "Uploading files and running Random Forest + HMM inference. Please wait...",
+            "loading"
+        );
 
         try {
+            // Read files for drawing the map after inference.
+            const gpsText = await gpsFile.text();
+            const nodesText = await nodesFile.text();
+            const arcsText = await arcsFile.text();
 
-            const response = await fetch("/upload", {
+            const gpsPoints = parseGPSCsv(gpsText);
+            const nodes = parseNetworkFile(nodesText, "nodes");
+            const arcs = parseNetworkFile(arcsText, "arcs");
+
+            const formData = new FormData();
+
+            formData.append("gps_file", gpsFile);
+            formData.append("nodes_file", nodesFile);
+            formData.append("arcs_file", arcsFile);
+
+            // Call the actual FastAPI map-matching endpoint.
+            const response = await fetch("/match", {
                 method: "POST",
                 body: formData
             });
@@ -538,36 +781,49 @@
             const result = await response.json();
 
             if (!response.ok) {
-                throw new Error(result.detail || "Upload failed");
+                throw new Error(
+                    result.detail || "Map matching request failed."
+                );
             }
 
-            document.getElementById("pointCount").textContent =
-                result.gps_points;
+            if (result.status !== "success") {
+                throw new Error(
+                    result.message || "Map matching was unsuccessful."
+                );
+            }
 
-            document.getElementById("fileSize").textContent =
-                (result.size_bytes / 1024).toFixed(2) + " KB";
+            if (!Array.isArray(result.route)) {
+                throw new Error(
+                    "API response does not contain a valid route."
+                );
+            }
 
-            document.getElementById("uploadStatus").textContent =
-                "Success";
+            updateStatistics(result);
 
-            displayGPSMap(result.gps_coordinates);
+            displayMatchedMap(
+                gpsPoints,
+                nodes,
+                arcs,
+                result.route
+            );
 
             showMessage(
-                result.message + " | " + result.filename,
+                "Map matching completed successfully! " +
+                result.matched_points + " of " +
+                result.gps_points + " GPS points matched. " +
+                result.route_arc_count + " route arcs generated.",
                 "success"
             );
 
         } catch (error) {
-
-            document.getElementById("uploadStatus").textContent =
+            document.getElementById("matchStatus").textContent =
                 "Failed";
 
             showMessage(error.message, "error");
 
         } finally {
-
-            uploadButton.disabled = false;
-            uploadButton.textContent = "Upload GPS Trip";
+            matchButton.disabled = false;
+            matchButton.textContent = "Run Map Matching";
         }
     });
 </script>

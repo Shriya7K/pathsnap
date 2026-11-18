@@ -57,7 +57,7 @@ for tf in files:
     d, s = tf.parent, tf.stem
     if ONLY and s != ONLY:
         continue
-    part = tf.relative_to(ROOT).parts[0]
+    part = ROOT.name
     t0 = time.time()
 
     trk = read(d, s, ".track")

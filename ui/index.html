@@ -1,0 +1,576 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathSnap | GPS Map Matching</title>
+
+    <!-- Leaflet map library -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #172033;
+        }
+
+        header {
+            background: #101b35;
+            color: white;
+            padding: 22px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 25px;
+        }
+
+        header span {
+            color: #60d6b0;
+        }
+
+        .status {
+            background: #203653;
+            padding: 9px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .intro {
+            margin-bottom: 25px;
+        }
+
+        .intro h2 {
+            font-size: 28px;
+            margin-bottom: 9px;
+        }
+
+        .intro p {
+            color: #64748b;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 13px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.05);
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+        }
+
+        .upload-area {
+            border: 2px dashed #9aabc5;
+            border-radius: 12px;
+            padding: 35px 15px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8faff;
+        }
+
+        .upload-area.dragover {
+            border-color: #16866d;
+            background: #e9faf4;
+        }
+
+        .upload-area p {
+            margin: 9px 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        button {
+            border: none;
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .browse {
+            background: #e5efff;
+            color: #174a91;
+            margin-top: 12px;
+        }
+
+        .upload-btn {
+            background: #1768d5;
+            color: white;
+            width: 100%;
+            margin-top: 18px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #fileName {
+            margin-top: 12px;
+            color: #1768d5;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        #message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        #message.success {
+            display: block;
+            background: #e5f8ee;
+            color: #147344;
+        }
+
+        #message.error {
+            display: block;
+            background: #fff0f0;
+            color: #b42318;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 18px;
+        }
+
+        .stat {
+            background: #f2f6fc;
+            padding: 18px;
+            border-radius: 10px;
+        }
+
+        .stat p {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .stat h2 {
+            font-size: 25px;
+        }
+
+        .map-card {
+            margin-top: 22px;
+        }
+
+        #map {
+            height: 430px;
+            width: 100%;
+            border-radius: 10px;
+            display: none;
+            z-index: 1;
+        }
+
+        .map-placeholder {
+            min-height: 240px;
+            background: #eaf0f7;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+        }
+
+        .map-placeholder h3 {
+            color: #263c5b;
+            margin-bottom: 10px;
+        }
+
+        .map-placeholder p {
+            font-size: 14px;
+        }
+
+        .note {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .legend {
+            display: none;
+            gap: 20px;
+            margin: 14px 0;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .legend span {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .dot {
+            height: 11px;
+            width: 11px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .start-dot {
+            background: #16a34a;
+        }
+
+        .end-dot {
+            background: #dc2626;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 700px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                padding: 18px 5%;
+            }
+
+            .intro h2 {
+                font-size: 23px;
+            }
+
+            #map {
+                height: 330px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Path<span>Snap</span></h1>
+    <div class="status">● System Online</div>
+</header>
+
+<main>
+
+    <section class="intro">
+        <h2>GPS Map Matching Dashboard</h2>
+        <p>Upload GPS trip data and prepare it for road-network map matching.</p>
+    </section>
+
+    <section class="dashboard">
+
+        <div class="card">
+            <h3>Upload GPS Trip</h3>
+
+            <div class="upload-area" id="dropArea">
+                <div style="font-size:35px;">📂</div>
+                <h3>Drag and drop your CSV file</h3>
+                <p>or browse files from your computer</p>
+
+                <button class="browse" type="button" id="browseButton">
+                    Browse Files
+                </button>
+
+                <input type="file" id="fileInput" accept=".csv">
+                <div id="fileName">No file selected</div>
+            </div>
+
+            <button class="upload-btn" id="uploadButton" disabled>
+                Upload GPS Trip
+            </button>
+
+            <div id="message"></div>
+        </div>
+
+        <div class="card">
+            <h3>Trip Statistics</h3>
+
+            <div class="stats">
+
+                <div class="stat">
+                    <p>GPS Points</p>
+                    <h2 id="pointCount">—</h2>
+                </div>
+
+                <div class="stat">
+                    <p>File Size</p>
+                    <h2 id="fileSize">—</h2>
+                </div>
+
+                <div class="stat">
+                    <p>Upload Status</p>
+                    <h2 id="uploadStatus" style="font-size:17px;">Waiting</h2>
+                </div>
+
+                <div class="stat">
+                    <p>Map Matching</p>
+                    <h2 style="font-size:17px;">Pending</h2>
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+
+    <section class="card map-card">
+        <h3>GPS Route Visualization</h3>
+
+        <div class="map-placeholder" id="mapPlaceholder">
+            <div>
+                <div style="font-size:40px;">🗺️</div>
+                <h3>Interactive GPS Map</h3>
+                <p>Upload a valid GPS CSV file to visualize your trip.</p>
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="legend" id="mapLegend">
+            <span><i class="dot start-dot"></i> Starting point</span>
+            <span><i class="dot end-dot"></i> Ending point</span>
+        </div>
+
+        <p class="note">
+            This map displays the original uploaded GPS trace.
+            ML-based road prediction and HMM route matching are
+            separate features that will be integrated later.
+        </p>
+    </section>
+
+</main>
+
+<footer>
+    PathSnap | GPS Map Matching System
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    const fileInput = document.getElementById("fileInput");
+    const browseButton = document.getElementById("browseButton");
+    const uploadButton = document.getElementById("uploadButton");
+    const dropArea = document.getElementById("dropArea");
+    const fileName = document.getElementById("fileName");
+    const message = document.getElementById("message");
+
+    let selectedFile = null;
+    let map = null;
+    let routeLayer = null;
+
+    browseButton.addEventListener("click", () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener("change", () => {
+        selectFile(fileInput.files[0]);
+    });
+
+    function selectFile(file) {
+        if (!file) return;
+
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            showMessage("Please select a CSV file.", "error");
+            return;
+        }
+
+        selectedFile = file;
+        fileName.textContent = file.name;
+        uploadButton.disabled = false;
+        message.style.display = "none";
+    }
+
+    dropArea.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropArea.classList.add("dragover");
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("dragover");
+    });
+
+    dropArea.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropArea.classList.remove("dragover");
+        selectFile(event.dataTransfer.files[0]);
+    });
+
+    function showMessage(text, type) {
+        message.textContent = text;
+        message.className = type;
+        message.style.display = "block";
+    }
+
+    function displayGPSMap(points) {
+
+        const coordinates = points.map(point => [
+            point.latitude,
+            point.longitude
+        ]);
+
+        document.getElementById("mapPlaceholder").style.display = "none";
+        document.getElementById("map").style.display = "block";
+        document.getElementById("mapLegend").style.display = "flex";
+
+        if (!map) {
+            map = L.map("map");
+            
+            L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+                    attribution: "&copy; OpenStreetMap contributors",
+                    maxZoom: 19
+                }
+            ).addTo(map);
+        }
+
+        if (routeLayer) {
+            map.removeLayer(routeLayer);
+        }
+
+        const layers = [];
+
+        // Draw the uploaded GPS trace.
+        const routeLine = L.polyline(coordinates, {
+            color: "#1768d5",
+            weight: 5,
+            opacity: 0.85
+        });
+
+        layers.push(routeLine);
+
+        // Mark the starting point.
+        const startMarker = L.marker(coordinates[0])
+            .bindPopup("Starting GPS point");
+
+        layers.push(startMarker);
+
+        // Mark the ending point.
+        const endMarker = L.marker(coordinates[coordinates.length - 1])
+            .bindPopup("Ending GPS point");
+
+        layers.push(endMarker);
+
+        // Add individual GPS point markers.
+        coordinates.forEach((coordinate, index) => {
+
+            if (index === 0 || index === coordinates.length - 1) {
+                return;
+            }
+
+            const marker = L.circleMarker(coordinate, {
+                radius: 5,
+                color: "#ffffff",
+                weight: 2,
+                fillColor: "#1768d5",
+                fillOpacity: 1
+            }).bindPopup("GPS Point " + (index + 1));
+
+            layers.push(marker);
+        });
+
+        routeLayer = L.featureGroup(layers).addTo(map);
+
+        map.fitBounds(routeLayer.getBounds(), {
+            padding: [35, 35],
+            maxZoom: 16
+        });
+
+        setTimeout(() => map.invalidateSize(), 100);
+    }
+
+    uploadButton.addEventListener("click", async () => {
+
+        if (!selectedFile) return;
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        uploadButton.disabled = true;
+        uploadButton.textContent = "Uploading...";
+        message.style.display = "none";
+
+        try {
+
+            const response = await fetch("/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.detail || "Upload failed");
+            }
+
+            document.getElementById("pointCount").textContent =
+                result.gps_points;
+
+            document.getElementById("fileSize").textContent =
+                (result.size_bytes / 1024).toFixed(2) + " KB";
+
+            document.getElementById("uploadStatus").textContent =
+                "Success";
+
+            displayGPSMap(result.gps_coordinates);
+
+            showMessage(
+                result.message + " | " + result.filename,
+                "success"
+            );
+
+        } catch (error) {
+
+            document.getElementById("uploadStatus").textContent =
+                "Failed";
+
+            showMessage(error.message, "error");
+
+        } finally {
+
+            uploadButton.disabled = false;
+            uploadButton.textContent = "Upload GPS Trip";
+        }
+    });
+</script>
+
+</body>
+</html>

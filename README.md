@@ -12,8 +12,10 @@ Map matching for noisy GPS traces. Given a vehicle's GPS points and a road netwo
 
 ## Team
 
-* Name 1 - role
-* Name 2 - role
+* Shriya K
+* Shriranjini
+* Sujal T H
+* Sujan
 
 ## Setup, usage, deployment
 

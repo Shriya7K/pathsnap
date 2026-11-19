@@ -1,0 +1,141 @@
+"""Feature engineering configuration and schema documentation for PathSnap Person 2."""
+
+FEATURE_METADATA = {
+    # --- Geometric Features ---
+    "perpendicular_distance": {
+        "description": "Orthogonal distance from GPS observation to candidate arc line segment.",
+        "units": "meters",
+        "type": "float32",
+        "missing_strategy": "constant (999.0)",
+    },
+    "distance_rank": {
+        "description": "Rank of candidate arc ordered by orthogonal proximity (0 = closest).",
+        "units": "integer rank (0-indexed)",
+        "type": "int16",
+        "missing_strategy": "constant (99)",
+    },
+    "dist_along_arc": {
+        "description": "Distance along candidate arc from start node to orthogonal projection point.",
+        "units": "meters",
+        "type": "float32",
+        "missing_strategy": "0.0",
+    },
+    "arc_length": {
+        "description": "Metric length of the candidate road arc segment.",
+        "units": "meters",
+        "type": "float32",
+        "missing_strategy": "median",
+    },
+    "arc_bearing": {
+        "description": "Compass orientation angle of candidate arc from start node to end node.",
+        "units": "radians [-pi, pi]",
+        "type": "float32",
+        "missing_strategy": "0.0",
+    },
+    "heading_bearing_diff": {
+        "description": "Absolute angular difference between GPS motion heading and candidate arc bearing.",
+        "units": "radians [0, pi]",
+        "type": "float32",
+        "missing_strategy": "pi / 2 (orthogonal default)",
+    },
+    "cos_heading_diff": {
+        "description": "Cosine of heading-bearing difference (+1 parallel, -1 opposite, 0 perpendicular).",
+        "units": "dimensionless [-1.0, 1.0]",
+        "type": "float32",
+        "missing_strategy": "0.0",
+    },
+
+    # --- GPS Movement Features ---
+    "gps_speed": {
+        "description": "Instantaneous vehicle ground speed from previous observation.",
+        "units": "meters / second",
+        "type": "float32",
+        "missing_strategy": "0.0 (stationary for first observation)",
+    },
+    "time_diff": {
+        "description": "Time delta between current and previous GPS observation.",
+        "units": "seconds",
+        "type": "float32",
+        "missing_strategy": "1.0 (default 1Hz sampling)",
+    },
+    "distance_travelled": {
+        "description": "Metric Euclidean distance travelled from previous GPS point.",
+        "units": "meters",
+        "type": "float32",
+        "missing_strategy": "0.0",
+    },
+    "gps_heading": {
+        "description": "Compass heading angle of vehicle trajectory vector.",
+        "units": "radians [-pi, pi]",
+        "type": "float32",
+        "missing_strategy": "0.0",
+    },
+    "speed_forward": {
+        "description": "Forward ground speed from current to next observation.",
+        "units": "meters / second",
+        "type": "float32",
+        "missing_strategy": "backfill with current speed",
+    },
+    "acceleration": {
+        "description": "Temporal acceleration between backward and forward speed.",
+        "units": "meters / second^2",
+        "type": "float32",
+        "missing_strategy": "0.0",
+    },
+
+    # --- Road Network Features ---
+    "start_node_degree": {
+        "description": "Degree (number of incident arcs) of the candidate arc's start node.",
+        "units": "count",
+        "type": "int16",
+        "missing_strategy": "1",
+    },
+    "end_node_degree": {
+        "description": "Degree (number of incident arcs) of the candidate arc's end node.",
+        "units": "count",
+        "type": "int16",
+        "missing_strategy": "1",
+    },
+    "is_junction": {
+        "description": "Binary flag indicating if either endpoint is a road junction (degree >= 3).",
+        "units": "binary {0, 1}",
+        "type": "int8",
+        "missing_strategy": "0",
+    },
+    "prev_candidate_connected": {
+        "description": "Flag indicating if candidate arc connects topologically to top candidates of previous point.",
+        "units": "binary {0, 1}",
+        "type": "int8",
+        "missing_strategy": "0",
+    },
+
+    # --- Interaction & Contextual Features ---
+    "dist_ratio": {
+        "description": "Ratio of candidate orthogonal distance to the closest candidate's distance.",
+        "units": "ratio (>= 1.0)",
+        "type": "float32",
+        "missing_strategy": "1.0",
+    },
+    "speed_heading_alignment": {
+        "description": "Interaction feature: gps_speed * cos(heading_bearing_diff).",
+        "units": "meters / second",
+        "type": "float32",
+        "missing_strategy": "0.0",
+    },
+}
+
+FEATURE_COLUMNS = list(FEATURE_METADATA.keys())
+
+IDENTIFIER_COLUMNS = [
+    "trip_id",
+    "point_idx",
+    "arc_id",
+]
+
+TARGET_COLUMN = "label"
+VALID_COLUMN = "label_valid"
+
+RANDOM_SEED = 42
+N_FOLDS = 5
+CANDIDATE_K = 15  # Default top-K candidate rank threshold for modeling
+CANDIDATE_R = 100.0  # Default search radius in meters

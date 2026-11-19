@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PathSnap – GPS Map Matching Studio</title>
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+        </svg>
+      </div>
+      <div>
+        <h1 class="app-title">PathSnap</h1>
+        <span class="app-subtitle">GPS-to-Road Sequence Map Matcher</span>
+      </div>
+    </div>
+
+    <div class="header-status">
+      <div class="sync-toggle-box" title="Auto-mirror matches and trajectory actions from other laptops in real time">
+        <label class="switch-mini">
+          <input type="checkbox" id="toggleLiveSync">
+          <span class="slider-mini"></span>
+        </label>
+        <span class="sync-label">Live Sync</span>
+      </div>
+      <div class="status-indicator">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Connecting...</span>
+      </div>
+      <div class="badge-tag">HMM + Viterbi Engine</div>
+    </div>
+  </header>
+
+  <!-- Main Application Workspace -->
+  <main class="app-workspace">
+
+    <!-- Left Control Panel -->
+    <aside class="control-panel">
+
+      <!-- Server Mode Info Widget (Visible in Server Mode) -->
+      <div id="serverModeWidget" class="server-ops-card">
+        <div class="server-ops-header">
+          <div class="server-badge">🖥️ SERVER HOST: 10.20.202.73:8000</div>
+          <span class="pulse-indicator"></span>
+        </div>
+        <div class="server-stats-row">
+          <div class="server-stat">
+            <span class="stat-num" id="statConnectedClients">0</span>
+            <span class="stat-txt">Active Clients</span>
+          </div>
+          <div class="server-stat">
+            <span class="stat-num" id="statProcessedMatches">0</span>
+            <span class="stat-txt">Total Matches</span>
+          </div>
+        </div>
+        <div class="clients-list-box" id="clientsListBox">
+          <div class="client-item idle">Listening for client traffic on port 8000...</div>
+        </div>
+        <div class="server-ops-actions" style="margin-top: 8px;">
+          <button id="btnResetServer" class="btn-reset-demo">↺ Reset Demo Counter</button>
+        </div>
+      </div>
+
+      <!-- Client Mode Banner (Visible in Client Mode) -->
+      <div id="clientModeWidget" class="client-ops-card hidden">
+        <div class="client-ops-header">
+          <span class="client-badge">📱 CLIENT TERMINAL</span>
+          <span class="server-link-tag">Target: 10.20.202.73:8000</span>
+        </div>
+        <p class="client-ops-hint">Select a benchmark trajectory or upload a GPS track to transmit to the Host Server for HMM Viterbi matching.</p>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="tab-navigation">
+        <button class="tab-btn active" data-tab="tab-sample">Sample Trips</button>
+        <button class="tab-btn" data-tab="tab-upload">Upload Track</button>
+        <button class="tab-btn" data-tab="tab-manual">Manual Input</button>
+      </div>
+
+      <!-- Tab Content: Sample Trips -->
+      <section class="tab-pane active" id="tab-sample">
+        <div class="form-group">
+          <label for="sampleTripSelect">Select Benchmark Trip</label>
+          <select id="sampleTripSelect" class="form-select">
+            <option value="" disabled selected>Loading trips...</option>
+          </select>
+          <span class="field-hint">Select a trip from held-out student-test or training partition.</span>
+        </div>
+
+        <div class="action-btn-row">
+          <button id="btnLoadSample" class="btn btn-secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Load Trajectory
+          </button>
+          <button id="btnMatchSample" class="btn btn-primary" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Match Route
+          </button>
+        </div>
+      </section>
+
+      <!-- Tab Content: File Upload -->
+      <section class="tab-pane" id="tab-upload">
+        <div class="upload-dropzone" id="dropZone">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <p class="dropzone-title">Drag & drop <code>.track</code> or <code>.csv</code> file</p>
+          <p class="dropzone-hint">or click to browse from device</p>
+          <input type="file" id="fileInput" accept=".track,.csv,.tsv,.txt" style="display: none;">
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label for="uploadTripId">Associate Road Network Trip</label>
+          <input type="text" id="uploadTripId" class="form-input" value="00000001" placeholder="Trip ID (e.g. 00000001)">
+        </div>
+
+        <button id="btnUploadMatch" class="btn btn-primary" style="width: 100%;" disabled>
+          Upload & Match
+        </button>
+      </section>
+
+      <!-- Tab Content: Manual Coordinates Input -->
+      <section class="tab-pane" id="tab-manual">
+        <div class="form-group">
+          <label for="manualCoords">GPS Coordinates (JSON / CSV)</label>
+          <textarea id="manualCoords" class="form-textarea" rows="8" placeholder='[{"latitude": 51.505, "longitude": -0.09}, ...]'></textarea>
+          <span class="field-hint">Format: <code>latitude, longitude, [timestamp]</code> or JSON array.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="manualTripId">Reference Road Network</label>
+          <input type="text" id="manualTripId" class="form-input" value="00000001">
+        </div>
+
+        <button id="btnManualMatch" class="btn btn-primary" style="width: 100%;">
+          Validate & Match
+        </button>
+      </section>
+
+      <!-- Error / Notification Box -->
+      <div id="alertBox" class="alert-banner hidden">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-message" id="alertMsg">Error message</div>
+        <button class="alert-close" id="alertClose">&times;</button>
+      </div>
+
+      <!-- Execution Performance & Summary Cards -->
+      <section class="metrics-panel hidden" id="metricsPanel">
+        <h3 class="panel-section-title">Matching Results</h3>
+        
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Points Snapped</span>
+            <span class="metric-value" id="valPoints">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Road Distance</span>
+            <span class="metric-value" id="valDistance">0 km</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Avg Confidence</span>
+            <span class="metric-value" id="valConfidence">0%</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Pipeline Latency</span>
+            <span class="metric-value highlight" id="valLatency">0 ms</span>
+          </div>
+        </div>
+
+        <div class="accuracy-card hidden" id="accuracyCard">
+          <span class="acc-label">Ground-Truth Route Accuracy:</span>
+          <span class="acc-value" id="valAccuracy">97.6%</span>
+        </div>
+
+        <!-- Traversed Road Arcs Table -->
+        <div class="route-breakdown">
+          <div class="route-breakdown-header">
+            <h4>Traversed Route Segments</h4>
+            <span class="badge" id="arcCountBadge">0 segments</span>
+          </div>
+          <div class="table-scroll">
+            <table class="arcs-table">
+              <thead>
+                <tr>
+                  <th>Seq</th>
+                  <th>Arc ID</th>
+                  <th>Segment Status</th>
+                </tr>
+              </thead>
+              <tbody id="arcsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live Pipeline Execution Log -->
+      <section class="log-panel" id="logPanel">
+        <div class="log-panel-header">
+          <div class="log-title">
+            <span class="log-indicator"></span>
+            <span>Live Pipeline Logs</span>
+          </div>
+          <button id="btnClearLogs" class="btn-clear-log" title="Clear log history">Clear</button>
+        </div>
+        <div class="log-terminal" id="logTerminal">
+          <div class="log-line system">[SYSTEM] PathSnap Studio initialized. Connected to backend API.</div>
+          <div class="log-line info">[INFO] Pipeline ready: Candidate Gen → Feature Extractor → HMM Viterbi Trellis.</div>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- Right Map Display Area -->
+    <section class="map-view-container">
+      <div id="map" class="map-canvas"></div>
+
+      <!-- Floating Map Legend -->
+      <div class="map-legend">
+        <div class="legend-header">Map Legend</div>
+        <div class="legend-item">
+          <span class="legend-swatch raw-gps"></span>
+          <span>Raw GPS Observations</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-swatch snapped-route"></span>
+          <span>Matched Road Sequence</span>
+        </div>
+        <div class="legend-divider"></div>
+        <div class="legend-toggle">
+          <label class="switch">
+            <input type="checkbox" id="toggleRawGps" checked>
+            <span class="slider"></span>
+          </label>
+          <span>Show Raw GPS Points</span>
+        </div>
+      </div>
+
+      <!-- Loading Spinner Overlay -->
+      <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">Processing GPS Trajectory...</div>
+        <div class="loading-subtext">Executing Candidate Spatial Indexing → Feature Extraction → Classifier → Viterbi Trellis</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Application Client Logic -->
+  <script src="/static/app.js"></script>
+</body>
+</html>

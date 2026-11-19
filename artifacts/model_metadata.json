@@ -1,0 +1,46 @@
+{
+  "model_type": "HistGradientBoostingClassifier",
+  "model_family": "Gradient Boosted Decision Trees",
+  "hyperparameters": {
+    "learning_rate": 0.08526104379120018,
+    "max_iter": 150,
+    "max_leaf_nodes": 61,
+    "min_samples_leaf": 63,
+    "l2_regularization": 0.0022277521891224455,
+    "class_weight": "balanced",
+    "random_state": 42
+  },
+  "training_samples": 2013074,
+  "training_trips": 80,
+  "training_time_sec": 40.55,
+  "random_seed": 42,
+  "feature_count": 19,
+  "feature_columns": [
+    "perpendicular_distance",
+    "distance_rank",
+    "dist_along_arc",
+    "arc_length",
+    "arc_bearing",
+    "heading_bearing_diff",
+    "cos_heading_diff",
+    "gps_speed",
+    "time_diff",
+    "distance_travelled",
+    "gps_heading",
+    "speed_forward",
+    "acceleration",
+    "start_node_degree",
+    "end_node_degree",
+    "is_junction",
+    "prev_candidate_connected",
+    "dist_ratio",
+    "speed_heading_alignment"
+  ],
+  "package_versions": {
+    "scikit-learn": "1.9.1",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "optuna": "5.1.0",
+    "joblib": "1.6.0"
+  }
+}

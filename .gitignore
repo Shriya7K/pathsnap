@@ -1,8 +1,29 @@
-__pycache__/ 
-*.pyc 
-.env 
-.venv/ 
-venv/ 
-.ipynb_checkpoints/ 
-.DS_Store 
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+.ipynb_checkpoints/
+.DS_Store
+
+# Data exclusions
+data/evaluator_test/
+
+# Generated candidate data
 results/candidates/
+
+# Generated ML training and test features (large files)
+results/training_features/
+results/test_features/
+results/features/
+results/probabilities/
+
+# Generated model outputs
+results/models/
+results/tuning/
+results/predictions/
+results/evaluator_test_predictions.csv.gz
+
+# Uploaded files
+api/uploads/*
+!api/uploads/.gitkeep

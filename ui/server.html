@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PathSnap – Central Server Monitor (Host Node)</title>
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* Server-specific enhancements */
+    .server-badge-pill {
+      background: #0f172a;
+      color: #38bdf8;
+      border: 1px solid #0284c7;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .clients-count-badge {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #10b981;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .client-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .client-card.active {
+      border-left: 4px solid #10b981;
+    }
+    .client-ip-text {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .activity-feed-box {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #0f172a;
+      color: #ffffff !important;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 8px;
+      line-height: 1.4;
+    }
+    .activity-feed-line {
+      margin-bottom: 4px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .activity-time {
+      color: #38bdf8;
+    }
+    .activity-ip {
+      color: #34d399;
+      font-weight: bold;
+    }
+    .activity-acc {
+      color: #fbbf24;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-mark" style="background: linear-gradient(135deg, #0f172a, #2563eb);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+          <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+          <line x1="6" y1="6" x2="6.01" y2="6"></line>
+          <line x1="6" y1="18" x2="6.01" y2="18"></line>
+        </svg>
+      </div>
+      <div>
+        <h1 class="app-title">PathSnap Central Server</h1>
+        <span class="app-subtitle">Host Engine (10.20.202.73:8000) &bull; Multi-Client Monitor</span>
+      </div>
+    </div>
+
+    <div class="header-status">
+      <span class="server-badge-pill">🖥️ HOST SERVER</span>
+      <span class="clients-count-badge" id="clientCountBadge">● 0 Active Clients</span>
+      <div class="status-indicator">
+        <span class="status-dot online" id="statusDot"></span>
+        <span class="status-text" id="statusText">Server Listening</span>
+      </div>
+      <button id="btnResetServer" class="btn-reset-demo" style="margin: 0; padding: 6px 12px; font-size: 0.75rem;">
+        ↺ Clear Live Map
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Application Workspace -->
+  <main class="app-workspace">
+
+    <!-- Left Control & Monitor Panel -->
+    <aside class="control-panel" style="width: 380px;">
+
+      <!-- Server Node Telemetry Box -->
+      <div class="server-ops-card" style="margin-bottom: 12px;">
+        <div class="server-ops-header">
+          <div class="server-badge">🖥️ HOST TELEMETRY</div>
+          <span class="pulse-indicator"></span>
+        </div>
+        <div class="server-stats-row">
+          <div class="server-stat">
+            <span class="stat-num" id="statConnectedClients">0</span>
+            <span class="stat-txt">Connected Clients</span>
+          </div>
+          <div class="server-stat">
+            <span class="stat-num" id="statProcessedMatches">0</span>
+            <span class="stat-txt">Total Inbound Matches</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connected Client Terminals -->
+      <div class="card" style="margin-bottom: 12px;">
+        <h3 style="font-size: 0.85rem; font-weight: 700; color: #0f172a; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <span>📱 Connected Clients</span>
+          <span style="font-size: 0.7rem; color: #64748b; font-weight: normal;">Auto-detected via 4s heartbeats</span>
+        </h3>
+        <div id="clientsListBox">
+          <div class="client-item idle" style="padding: 12px; text-align: center; color: #64748b; font-size: 0.8rem;">
+            Waiting for Laptop 2 (Client) to connect at <code>10.20.202.73:8000/client</code>...
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Client Inbound Activity Feed -->
+      <div class="card" style="margin-bottom: 12px;">
+        <h3 style="font-size: 0.85rem; font-weight: 700; color: #0f172a; margin-bottom: 8px;">
+          ⚡ Live Client Inbound Feed
+        </h3>
+        <div class="activity-feed-box" id="activityFeedBox">
+          <div style="color: #94a3b8; font-style: italic;">Listening for incoming match requests from clients...</div>
+        </div>
+      </div>
+
+      <!-- Real-Time Activity Metrics (Mirrored from Latest Match) -->
+      <section class="metrics-panel hidden" id="metricsPanel" style="padding: 10px; margin-bottom: 12px;">
+        <div class="metric-card" style="grid-column: span 2; background: #eff6ff; border-color: #bfdbfe;">
+          <span class="metric-label" style="color: #1e40af;">Current Client Trajectory</span>
+          <span class="metric-value" id="valActiveClient" style="font-size: 0.95rem; color: #1e3a8a;">None</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">GPS Points</span>
+          <span class="metric-value" id="valPoints">-</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Snapped Distance</span>
+          <span class="metric-value" id="valDistance">-</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Confidence</span>
+          <span class="metric-value" id="valConfidence">-</span>
+        </div>
+        <div class="metric-card" id="accuracyCard">
+          <span class="metric-label" style="color: #047857;">Ground-Truth Acc</span>
+          <span class="metric-value" id="valAccuracy" style="color: #059669;">-</span>
+        </div>
+      </section>
+
+      <!-- Server Logs Terminal -->
+      <div class="log-panel" style="flex: 1; display: flex; flex-direction: column; background: #0f172a; border-radius: 8px; border: 1px solid #1e293b; overflow: hidden;">
+        <div class="log-panel-header" style="background: #1e293b; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155;">
+          <span style="color: #ffffff !important; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase;">Server Execution Logs</span>
+          <button id="btnClearLogs" class="btn-clear-logs" style="background: rgba(255,255,255,0.08); border: 1px solid #475569; color: #ffffff !important; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; cursor: pointer;">Clear</button>
+        </div>
+        <div class="log-terminal" id="logTerminal" style="flex: 1; min-height: 130px; background: #0f172a; color: #ffffff !important; padding: 10px 12px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.73rem; line-height: 1.5;"></div>
+      </div>
+
+    </aside>
+
+    <!-- Right Map View -->
+    <section class="map-view-container">
+      <div id="map" class="map-canvas"></div>
+
+      <!-- Floating Map Legend -->
+      <div class="map-legend">
+        <div class="legend-header" id="overlayTripText">Waiting for Client Match Request</div>
+        <div class="legend-item">
+          <span class="legend-swatch raw-gps"></span>
+          <span>Raw GPS Observations (Red)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-swatch snapped-route"></span>
+          <span>Matched Road Route (Emerald)</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <!-- Server Specific Script -->
+  <script src="/static/server.js"></script>
+</body>
+</html>

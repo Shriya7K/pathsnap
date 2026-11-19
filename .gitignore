@@ -6,21 +6,24 @@ venv/
 .ipynb_checkpoints/
 .DS_Store
 
+# Data exclusions
+data/evaluator_test/
+
 # Generated candidate data
 results/candidates/
 
 # Generated ML training and test data
 results/training_features/
 results/test_features/
+results/features/
+results/probabilities/
 
 # Generated model outputs
 results/models/
 results/tuning/
-results/probabilities/
 results/predictions/
+results/evaluator_test_predictions.csv.gz
 
 # Uploaded files
 api/uploads/*
-
-# Keep the uploads directory
 !api/uploads/.gitkeep

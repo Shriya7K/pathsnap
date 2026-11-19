@@ -27,12 +27,13 @@ def main(argv=None):
     ap.add_argument("--tuned-config", required=True)
     ap.add_argument("--tuning-trips", required=True, help="CSV with the trips the tuner used (excluded here)")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--partitions", nargs="+", default=["train", "student_test"], choices=["train", "student_test"])
     ap.add_argument("--data-root", default=str(DATA_ROOT))
     ap.add_argument("--cands-dir", default=str(CANDS_DIR))
     a = ap.parse_args(argv)
 
     used = set(pd.read_csv(a.tuning_trips, dtype={"trip_id": str}).trip_id)
-    lp = load_probs(a.probs, ["train", "student_test"], a.data_root, a.cands_dir)
+    lp = load_probs(a.probs, a.partitions, a.data_root, a.cands_dir)
     trips = [t for t in lp.trips if t[1] not in used]
     print(f"{len(used)} tuning trips excluded; evaluating {len(trips)} unseen trips "
           f"({sum(p == 'student_test' for p, _ in trips)} student_test + {sum(p == 'train' for p, _ in trips)} train OOF)")
@@ -63,9 +64,12 @@ def main(argv=None):
                   f"{int((dd.abs() <= 1e-9).sum())}/{int((dd < -1e-9).sum())}")
         print(f"breaks total: default {int(df.default_breaks.sum())}  tuned {int(df.tuned_breaks.sum())}")
 
-    table(out[out.partition == "student_test"], "student_test (never seen by tuning)")
-    table(out[out.partition == "train"], "remaining train OOF trips (not in the tuning subset)")
-    table(out, "all unseen trips")
+    if (out.partition == "student_test").any():
+        table(out[out.partition == "student_test"], "student_test (never seen by tuning)")
+    if (out.partition == "train").any():
+        table(out[out.partition == "train"], "remaining train OOF trips (not in the tuning subset)")
+    if out.partition.nunique() > 1:
+        table(out, "all unseen trips")
     print(f"\nwritten {a.out}")
 
 

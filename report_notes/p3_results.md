@@ -5,7 +5,7 @@ Facts only, no interpretation. Every number below is copied from a saved file na
 ## 1. Rebuild of P2's missing outputs (P2's code run unchanged)
 - `candidates.py data`: regenerated 180 files in results/candidates; decompressed content identical to the previous 180 files (180/180). `results/candidate_summary.csv` restored with `git checkout`. Log: results/hmm_stageA1_candidates.log
 - `build_training_data.py`: 80 train trips, 3,047,533 valid candidate rows, 185,106 positives (6.07%). Log: results/logs_stageA/A2_build_training_data.log
-- `train_final_model.py`: models/final_model.joblib, 6,388,209 bytes. `models/final_model_metadata.json` after the rebuild is **identical** to the committed one (git shows no change): hyperparameters {'n_estimators': 180, 'max_depth': 20, 'min_samples_leaf': 2, 'max_features': 'sqrt'}, training_rows 49940, positive_ratio 0.0631958350020024. (The original joblib is not in git, so its bytes could not be compared; the metadata matches exactly and the API path reproduces the batch predictions, see tests.)
+- `train_final_model.py`: models/final_model.joblib, 6,388,209 bytes. `models/final_model_metadata.json` after the rebuild is **identical** to the committed one (git shows no change): hyperparameters {'n_estimators': 180, 'max_depth': 20, 'min_samples_leaf': 2, 'max_features': 'sqrt'}, training_rows 49940, positive_ratio 0.0631958350020024. (CORRECTION, see section 12: P2's original joblib is now tracked in git and it is NOT identical to this rebuild; sections 2-8 were produced with the rebuilt model.)
 - `build_test_features.py` + `predict_test_probabilities.py`: 10 student_test files, 366,367 predictions. Logs in results/logs_stageA/.
 
 ### sha256 (model rebuilt on this machine)
@@ -206,3 +206,25 @@ python -m pytest tests -q
 - Trips 00000054 and 00000033: reference route covers 11% / 41% of the track; excluded from tuning, included in evaluation.
 - Probabilities of the 80 train trips are out-of-fold (5 folds); student_test probabilities come from the final model trained on all 80 train trips.
 - Tuning used 30 random trials on 30 trips; the tuner objective is route F1 after fill_path. The tuned config has lower pointwise accuracy than the default on most unseen trips (section 6).
+
+## 12. Re-run with P2's committed model (added after the first push)
+P2's original `models/final_model.joblib` (sha256 a5e83d3ab98b7ba363ff..., pickled with scikit-learn 1.9.1) is tracked in git on `main`. The first runs above used a local rebuild (sha256 d923b22aee4b6921d734..., scikit-learn 1.8.0). Facts:
+- Same hyperparameters (180 trees, depth 20, min_samples_leaf 2) but different predictions: over the 366,367 student_test candidate rows the mean absolute probability difference is 0.0033 (99th percentile 0.0386, max 0.1303); the top candidate per GPS point is the same for 18,916 of 19,160 points (98.73%).
+- scikit-learn was upgraded locally to 1.9.1 to load P2's file without a version warning. `results/predictions/` was regenerated with P2's unchanged `predict_test_probabilities.py` and P2's original model; `results/p2/` was rebuilt from it; `check_probs` passed (0 missing / 0 extra candidate rows).
+- Default vs tuned decoder on the 10 student_test trips with P2's committed model (`results/hmm_rf_student_test_p2model_tuned_vs_default.csv` / `.txt`):
+```
+=== student_test (never seen by tuning) (10 trips): HMM decoder, default vs tuned config ===
+metric       default mean  tuned mean   d mean |  def med tuned med    d med | improved/tied/worse
+point_acc          0.9268      0.9009  -0.0259 |   0.9394    0.9031  -0.0363 | 1/0/9
+precision          0.8861      0.9754  +0.0893 |   0.9418    0.9830  +0.0412 | 8/2/0
+recall             0.9878      0.9891  +0.0013 |   0.9852    0.9853  +0.0001 | 2/7/1
+f1                 0.9283      0.9820  +0.0538 |   0.9661    0.9832  +0.0171 | 8/2/0
+lcs_sim            0.8453      0.9705  +0.1253 |   0.9185    0.9783  +0.0598 | 9/1/0
+continuity         1.0000      1.0000  +0.0000 |   1.0000    1.0000  +0.0000 | 0/10/0
+breaks total: default 0  tuned 0
+
+written results/hmm_rf_student_test_p2model_tuned_vs_default.csv
+```
+- The train out-of-fold probabilities (80 trips) and the tuning (section 5) do not depend on P2's joblib (each fold was retrained by `hmm/p2_oof.py`) and were not re-run.
+- Section 4 / section 6 numbers for student_test come from the rebuilt model; the table above is the same comparison with P2's committed model.
+- API check on the synced `main`: `python -m uvicorn api.main:app`, POST /match with trip 00000052 (262 points; GPS track, nodes, arcs only): HTTP 200, 262/262 points matched, 93 route arcs; scored against the reference afterwards: precision 1.0000, recall 0.9789, F1 0.9894, LCS similarity 0.9789, 0 breaks. The 10-trip latency run on a busy machine (CPU about 76% from other applications) is in `results/hmm_latency_busy_machine_p2model.csv` (mean 6.44 s, slowest trip 00000077, 14.91 s); section 7 was measured on an idle machine.
